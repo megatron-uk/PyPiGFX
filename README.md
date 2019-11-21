@@ -37,9 +37,13 @@ The client computer opens up a serial interface to the Pi and starts sending com
 Instead, our client library at compile time will turn that into something that looks like:
 
 
-    fifo_send("0x09", "0x02", "0x00", "0x01", "0x00")
+    fifo_send("09", "1A", "00", "01", "00")
 
 
-Then only the 12 bytes that are encoded in that call will need to traverse the serial interface; not references to memory locations and not serialized/deserialized and we don't have to convert between big-endian/little-endian objects depending on what client we're using (never mind the fact that we're not going to get even a partial framebuffer copied to/from a tiny little 8-bit micro like a Z80 or 6502!).
+Then only the 10 bytes that are encoded in that call will need to traverse the serial interface; not references to memory locations and not serialized/deserialized and we don't have to convert between big-endian/little-endian objects depending on what client we're using (never mind the fact that we're not going to get even a partial framebuffer copied to/from a tiny little 8-bit micro like a Z80 or 6502!).
 
-At the Pi end, it reads the first set of bytes: `0x09`, look it up, detect that it should have 4 further parameters, turn it into the function call `SDL_BlitSurface()` and run it. The Pi keeps a table of each of those reference codes as it creates new SDL objects, so it knows that `0x02` is an already loaded `SDL_bitmap`, for example.
+Since we use 2 bytes for each object reference and are using hexadecimal, that means we can keep track of up to 256 unique SDL objects (including the main display object); that's fairly huge - I'm certain we'll run out of memory on the client before that becomes an issue.
+
+At the Pi end, it reads the first set of bytes: `0x09`, look it up, detect that it should have 4 further parameters, turn it into the function call `SDL_BlitSurface()` and run it. The Pi keeps a table of each of those reference codes as it creates new SDL objects, so it knows that `001A` is an already loaded `SDL_bitmap`, for example.
+
+There will be some function calls where literal values are passed over the link; for example in the case of creating new SDL_bitmap or SDL_rect objects, we'll need to supply integers to specify sizes. We should be able to use a 3 byte value scheme for most cases (32768 values) to keep the datastream compact.
