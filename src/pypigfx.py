@@ -40,16 +40,23 @@ while exit != True:
 		if packetValid(data):
 			datastream = packetUnwrap(data)
 			if datastream:
+				
+				result = sdldecode.result()
+				
 				# Map to SDL function call
-				sdl_func_def = sdldecode.id_to_funcname(datastream)
-				if sdl_func_def:
-					print("%s: Valid datastream: %s" % (__name__, datastream))
-					print("%s: Matched SDL function: %s" % (__name__, sdl_func_def))
-
-				# Construct SDL function call
-				f = sdldecode.construct_call(sdl_func_def, datastream)
-
-				# Execute function call
-				#sdldecode.execute_call(f)
+				sdl_func = sdldecode.id_to_funcname(datastream)
+				if sdl_func:
+					# Construct SDL function call
+					real_func,args = sdldecode.construct_call(sdl_func, datastream)
+		
+					# Execute function call
+					if real_func:
+						result = sdldecode.execute_call(sdl_func, real_func, args)
+					
+					# Encode result ready for transmission back to client
+					new_datastream = sdldecode.encode_result(sdl_func, result)
+					
+				else:
+					new_datastream = sdldecode.encode_result(None, result)
 		else:
 			print("%s: Error - invalid data: %s" % (__name__, data))

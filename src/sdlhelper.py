@@ -26,7 +26,7 @@ class SDLDecoder():
 			else:
 				# Incorrect number of parameters supplied
 				print("%s : ERROR: Incorrect number of SDL parameters supplied" % (__class__.__name__))
-				print("%s : ERROR: Supplied %s, Requires %s" % (__class__.__name__, len(datastream['data']), sdl_func['NUM_PARAMS']))
+				print("%s : ERROR: Supplied %s, Requires %s" % (__class__.__name__, len(datastream['data']), len(sdl_func['PARAMS_LIST'])))
 				return False
 		else:
 			print("%s : ERROR: Not a valid SDL function ID" % (__class__.__name__))
@@ -38,26 +38,78 @@ class SDLDecoder():
 		pos = 0
 		parsed_args = []
 		for arg in datastream['data']:
-			arg_type = sdl_func['PARAMS_LIST'][pos]
-			
-			if arg_type in SDL_TYPES:
-				# Lookup and return actual SDL object
-				try:
-					arg_value = self.environment.objects[arg_type][arg]['object']
-				except Exception as e:
-					print("%s: Error unable to find self.environment.objects.%s.%s" % (arg_type, arg))
-					return False
+			if pos < len(sdl_func['PARAMS_LIST']):
+				arg_type = sdl_func['PARAMS_LIST'][pos]
+				
+				if arg_type in SDL_TYPES:
+					# Lookup and return actual SDL object
+					try:
+						arg_value = self.environment.objects[arg_type][arg]['object']
+					except Exception as e:
+						print("%s: Error unable to find self.environment.objects.%s.%s" % (arg_type, arg))
+						return (False, None)
+				else:
+					# Cast the argument value to the type as defined
+					arg_value = arg_type(arg)
+				parsed_args.append(arg_value)
 			else:
-				# Cast the argument value to the type as defined
-				arg_value = arg_type(arg)
-			parsed_args.append(arg_value)
-			
+				print("%s: Error trying to parse argument %s, only %s arguments expected" % (__class__.__name__, pos, len(sdl_func['PARAMS_LIST'])))
 			pos += 1
 		real_func = sdl_func['SDL_CALL']
+		if len(parsed_args) == 0:
+			parsed_args = None
+		return (real_func, parsed_args)
+		
+	def result(self):
+		data = {
+			'status' : 0,
+			'type'	: 'void',
+			'value'	: 'null'
+		}
+		return data
+		
+	def execute_call(self, sdl_func = None, real_func = None, parsed_args = None):
+		""" Call the constructed SDL function """
+		
+		result = self.result()
+		
 		print("%s: Calling: %s with args %s" %  (__class__.__name__, real_func.__name__, parsed_args))
-		r = real_func(*parsed_args)
-		print("%s: SDL call returned %s" % (__class__.__name__, r))
-		return r
+		try:
+			if parsed_args is not None:
+				r = real_func(*parsed_args)
+			else:
+				r = real_func()
+			print("%s: SDL call returned %s" % (__class__.__name__, r))
+			
+			# If the return type was an SDL object, we have to store it in the environment
+			if sdl_func['RETURN_PARAM'] in SDL_TYPES:
+				object_id = self.environment.store_object(sdl_func['RETURN_PARAM'], r)
+				result['value'] = object_id
+			else:
+				result['value'] = r
+			result['status'] = 1
+			return result
+		except Exception as e:
+			print("%s: Error while executing SDL call" % (__class__.__name__))
+			print("%s: %s" % (__class__.__name__, e))
+			result['status'] = 0
+			return result
+		
+	def encode_result(self, sdl_func = None, result = None):
+		""" Encode a result object into a string for sending back to the client """
+		
+		if result['status'] == 0:
+			datastream = "<status:0,type:,value:>"			
+		else:
+			if sdl_func['RETURN_PARAM'] in SDL_TYPES:
+				sdl_object_id = "1234"
+				
+				datastream = "<status:%s,type:%s,value:%s>" % (result['status'], sdl_func['RETURN_PARAM'], sdl_object_id)
+			else:
+				datastream = "<status:%s,type:%s,value:%s>" % (result['status'], result['type'], result['value'])
+
+		print("%s: Encoded datastream %s" % (__class__.__name__, datastream))
+		return datastream
 
 class SDLEnvironment():
 	""" An object which holds all of the created SDL objects """
@@ -83,3 +135,13 @@ class SDLEnvironment():
 			self.objects[object_type] = {}
 
 		print("%s : Done" % (__class__.__name__))
+
+		self.object_id = 0
+
+	def store_object(self, object_type, sdl_object):
+		""" Store a new SDL object """
+		
+		self.objects[object_type][self.object_id] = sdl_object
+		self.object_id += 1
+		
+		return (self.object_id - 1)
