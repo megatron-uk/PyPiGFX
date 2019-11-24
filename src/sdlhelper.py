@@ -42,7 +42,6 @@ class SDLDecoder():
 			
 			if arg_type in SDL_TYPES:
 				# Lookup and return actual SDL object
-				# arg_value = 
 				try:
 					arg_value = self.environment.objects[arg_type][arg]['object']
 				except Exception as e:
