@@ -36,33 +36,41 @@ while exit != True:
 	data = i.read()
 	if data is not None:
 	
-		# Unpack message	
-		if packetValid(data):
-			datastream = packetUnwrap(data)
-				
+		data_list = data.split('>')
+		print("DATALIST: %s" % data_list)
+		for d in data_list[0:-1]:
+			if d != '':
+				d += '>'
+	
 			# Set default return objects
 			result = sdldecode.result()
 			new_datastream = sdldecode.encode_result(None, result)
-
-			if datastream:				
-				# Map to SDL function call
-				sdl_func = sdldecode.id_to_funcname(datastream)
-				if sdl_func:
-					# Construct SDL function call
-					real_func,args = sdldecode.construct_call(sdl_func, datastream)
-		
-					# Execute function call
-					if real_func:
-						result = sdldecode.execute_call(sdl_func, real_func, args)
-					
-					# Encode result ready for transmission back to client
-					new_datastream = sdldecode.encode_result(sdl_func, result)
-					
-			else:
-				new_datastream = sdldecode.encode_result(None, result)
 	
+			# Unpack message	
+			if packetValid(d):
+				print("DATA: %s" % d)
+				datastream = packetUnwrap(d)
+				
+				if datastream:				
+					# Map to SDL function call
+					sdl_func = sdldecode.id_to_funcname(datastream)
+					if sdl_func:
+						# Construct SDL function call
+						real_func,args = sdldecode.construct_call(sdl_func, datastream)
+			
+						# Execute function call
+						if real_func:
+							result = sdldecode.execute_call(sdl_func, real_func, args)
+						
+						# Encode result ready for transmission back to client
+						new_datastream = sdldecode.encode_result(sdl_func, result)
+						
+			else:
+				print("%s: Error - invalid data: %s" % (__name__, d))
+				new_datastream = sdldecode.encode_result(None, result)
+		
 			# Send return datastream with result	
 			i.write(new_datastream)
 			
 		else:
-			print("%s: Error - invalid data: %s" % (__name__, data))
+			print("%s: Error - no data left" % (__name__))

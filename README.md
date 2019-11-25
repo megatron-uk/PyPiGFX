@@ -79,7 +79,20 @@ Where:
 
 SDL object references are used in place of actual SDL objects in function calls. So where a call to create a new SDL_Rect returns "01D8", that reference is used in any future SDL call to refer to that specific object and the PyPiGFX process will automatically look up that object from its object store when you use it.
 
+Note that the `<status:,type:,value:>` data structure is not passed back to your code; it is dealt with internally within the SDL functions in the client - your code will receive the `type` and `value` defined in the structure only. The details about the data structure are for debugging/data-monitoring purposes only.
+
+**Note:** This documentation is not intended to teach you how to use SDL, for that, please consult one of the excellent [tutorials](https://wiki.libsdl.org/Tutorials), or one of my previous SDL projects: [sdlRFController, in Python + SDL2](https://github.com/megatron-uk/sdlRFController/tree/master/lib) or [sdlLauncher, in C + SDL1.2](https://github.com/megatron-uk/sdlRFController/tree/master/lib) ... actually, scratch that, don't use sdlLauncher, because the SDL1.2 way of doing things is now how you do it anymore...
+
 ## List of implemented functions
+
+   * SDL_Init
+   * SDL_Quit
+   * SDL_CreateWindow
+   * SDL_CreateRenderer
+   * SDL_CreateRGBSurface
+   * SDL_FillRect
+   * SDL_GetDriverName
+   * SDL_MapRGB
 
 ### SDL_Init(flags:int)
    * https://wiki.libsdl.org/SDL_Init
@@ -91,8 +104,9 @@ SDL object references are used in place of actual SDL objects in function calls.
 Example use:
 
 ```
+int r;
 flags = SDL_INIT_VIDEO|SDL_INIT_TIMER;
-r = SDL_Init(flags); // Where r is a returned data structure
+r = SDL_Init(flags);
 ```
 
    * If the call was not run, returns `<status:0,type:,value:>`
@@ -111,11 +125,63 @@ r = SDL_Init(flags); // Where r is a returned data structure
 Example use:
 
 ```
-r = SDL_Quit(); // where r is a returned data structure
+SDL_Quit();
 ```
 
    * If the call was not run, returns `<status:0,type:,value:>`
    * SDL_Quit returns void, so shall always return `<status:1,type:void,value:null>`
+
+----
+
+### SDL_CreateRenderer(window:SDL_Window, index:int, flags:int)
+   * https://wiki.libsdl.org/SDL_CreateRenderer
+   * Description: Returns an instance of a rendering context that can be used to perform drawing operations into a specific SDL_Window.
+   * Parameters
+     * window: Object ID of the SDL_Window to perform 2D drawing operations on
+     * index: See https://wiki.libsdl.org/SDL_CreateRenderer
+     * flags: An OR-ed set of SDL_RendererFlags (see https://wiki.libsdl.org/SDL_RendererFlags)
+   * Returns SDL_Renderer object ID
+
+Example use:
+
+```
+int renderer;
+int window;
+window = SDL_CreateWindow(title, 0, 0, 320, 240, flags);
+renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+```
+
+   * If the call was not run, returns `<status:0,type:,value:>`
+   * On SDL success, returns `<status:1,type:SDL_Renderer,value:0ABC>` - where 0ABC is an SDL object ID reference that can be used in any subsequent calls requiring this SDL_Renderer object.
+   * On SDL error, returns `<status:1,type:void,value:null>`
+
+----
+
+### SDL_CreateRGBSurface(flags:int, w:int, h:int, d:int, rmask:int, gmask:int, bmask:int, alpha:int)
+   * https://wiki.libsdl.org/SDL_CreateRGBSurface
+   * Description: Returns a new surface which can have content copied to it or edited, before being rendered to a window.
+   * Parameters:
+     * flags: Always set to 0, as per the SDL documentation
+     * w: width of the surface, in pixels
+     * h: height of the surface, in pixels
+     * d: colour depth of the surface, in pixels
+     * rmask: the value of the red channel to mask
+     * gmask: the value of the green channel to mask
+     * bmask: the value of the blue channel to mask
+     * alpha: the level of alpha transparency for pixels on this surface
+   * Returns SDL_Surface object ID
+
+Example use:
+
+```
+int surface;
+surface = SDL_CreateRGBSurface(0, 640, 480, 24, 0, 0, 0, 255)
+```
+
+   * If the call was not run, returns `<status:0,type:,value:>`
+   * On SDL success, returns `<status:1,type:SDL_Surface,value:0ABC>` - where 0ABC is an SDL object ID reference that can be used in any subsequent calls requiring this SDL_Surface object.
+   * On SDL error, returns `<status:1,type:void,value:null>`
+
 
 ----
 
@@ -146,26 +212,47 @@ r = SDL_CreateWindow(title, 0, 0, 320, 240, flags); // where r is a returned dat
 
 ----
 
-### SDL_CreateRenderer(window:SDL_Window, index:int, flags:int)
-   * https://wiki.libsdl.org/SDL_CreateRenderer
-   * Description: Returns an instance of a rendering context that can be used to perform drawing operations into a specific SDL_Window.
-   * Parameters
-     * window: Object ID of the SDL_Window to perform 2D drawing operations on
-     * index: See https://wiki.libsdl.org/SDL_CreateRenderer
-     * flags: An OR-ed set of SDL_RendererFlags (see https://wiki.libsdl.org/SDL_RendererFlags)
-   * Returns SDL_Renderer object ID
+### SDL_GetCurrentVideoDriver()
+   * https://wiki.libsdl.org/SDL_GetCurrentVideoDriver
+   * Description: Returns a string representing the name of the current Video output driver
+   * Parameters:
+     * None
+   * Returns: String of the current driver
 
 Example use:
 
 ```
-int renderer;
-int window;
-window = SDL_CreateWindow(title, 0, 0, 320, 240, flags);
-renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+char *driver;
+driver = SDL_GetCurrentVideoDriver();
 ```
 
    * If the call was not run, returns `<status:0,type:,value:>`
-   * On SDL success, returns `<status:1,type:SDL_Renderer,value:0ABC>` - where 0ABC is an SDL object ID reference that can be used in any subsequent calls requiring this SDL_Renderer object.
+   * On SDL success, returns `<status:1,type:str,value:rpi>` - where *rpi* is an example of one of the available SDL video drivers, on desktop Linux systems you may find *x11*, or *opengl*.
+   * On SDL error, returns `<status:1,type:void,value:null>`
+
+----
+
+### SDL_FillRect(surface:SDL_Surface, rect:[SDL_Rect|None], colour:SDL_Colour)
+   * https://wiki.libsdl.org/SDL_FillRect
+   * Description: Fills a rectangular region on a SDL_Surface, defined by an optional SDL_Rect structure, with a given SDL_Colour value
+   * Parameters:
+     * surface: the SDL_Surface into which we want to fill with a new colour
+     * rect: either an SDL_Rect instance of the bounding box of the area to colour, *or* blank (*use ,,*) to use the entire SDL_Surface
+     * colour: an example of an SDL_Colour as returned by SDL_MapRGB
+
+Example use:
+
+```
+int my_colour;
+int my_surface;
+my_surface = SDL_CreateRGBSurface(0, 320, 240, 24, 0, 0, 0, 255);
+my_colour = SDL_MapRGB(my_surface, 255, 0, 0);
+SDL_FillRect(my_surface,, my_colour); // Fills the entire SDL_Surface with solid red
+
+``` 
+
+   * If call was not run, returns `<status:0,type:,value:>`
+   * On SDL success, returns `<status:1,type:int,value:0>`
    * On SDL error, returns `<status:1,type:void,value:null>`
 
 ----
@@ -199,10 +286,8 @@ my_colour = SDL_MapRGB(my_surface, 255, 0, 0);
 ## List of planned functions
 
   * SDL_BlitSurface
-  * SDL_CreateRGBSurface
   * SDL_DestroyTexture
   * SDL_Drivertype
-  * SDL_FillRect
   * SDL_FreeSurface
   * SDL_GetCurrentDisplayMode
   * SDL_GetNumVideoDisplays

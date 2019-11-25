@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from sdl2 import *
+from sdlwrappers import *
 from utils import flattenString
 
 SDL_TYPES = ["SDL_Rect", "SDL_Surface", "SDL_Window", "SDL_Renderer"]
@@ -45,13 +46,13 @@ SDL_FUNCTIONS = {
 	"06" : {
 		"SDL_NAME" : "SDL_MapRGB",
 		"SDL_CALL" : SDL_MapRGB_,
-		"PARAMS_LIST" : ["SDL_PixelFormat", int, int, int],
+		"PARAMS_LIST" : ["SDL_Surface", int, int, int],
 		"RETURN_PARAM" : int
 	},
-        "9999" : {
-                "SDL_NAME" : "SDL_BlitSurface",
-                "SDL_CALL" : SDL_BlitSurface,
-                "PARAMS_LIST" : ["SDL_Surface", "SDL_Rect", "SDL_Surface", "SDL_Rect"],
-                "RETURN_PARAM" : int
-        }
+	"07" : {
+		"SDL_NAME" : "SDL_FillRect",
+		"SDL_CALL" : SDL_FillRect,
+		"PARAMS_LIST" : ["SDL_Surface", ["SDL_Rect", None], int],
+		"RETURN_PARAM" : int
+	}
 }

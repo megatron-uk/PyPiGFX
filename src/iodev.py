@@ -148,16 +148,45 @@ def fifoclient(instructions = []):
 	for ci in range(0,100):
 		i.read()
 
-	while True:
 		
-		do_SDL_Init = "<0001(32)>"
-		do_SDL_CreateWindow = "<0003(Test,0,0,640,480,0)>"
-		do_SDL_CreateRenderer = "<0004(1,0,0,0)>"
-	
-		i.write(do_SDL_Init)
-		i.write(do_SDL_CreateWindow)
-		i.write(do_SDL_CreateRenderer)
-	
+	do_SDL_Init = "<01(32)>"
+	do_SDL_CreateWindow = "<03(Test,0,0,640,480,0)>"
+	do_SDL_CreateRenderer = "<04(1,0,0,0)>"
+	do_SDL_CreateRGBSurface = "<05(0,640,480,24,0,0,0,255)>"
+	do_SDL_MapRGB = "<06(3,255,0,0)>"
+	do_SDL_FillRect = "<07(3,,16711680)>"
+
+	i.write(do_SDL_Init)
+	datastream = None
+	while datastream is None:
+		datastream = i.read()
+	print("%s" % datastream)
+	i.write(do_SDL_CreateWindow)
+	datastream = None
+	while datastream is None:
+		datastream = i.read()
+	print("%s" % datastream)
+	i.write(do_SDL_CreateRenderer)
+	datastream = None
+	while datastream is None:
+		datastream = i.read()
+	print("%s" % datastream)
+	i.write(do_SDL_CreateRGBSurface)
+	datastream = None
+	while datastream is None:
+		datastream = i.read()
+	print("%s" % datastream)
+	i.write(do_SDL_MapRGB)
+	datastream = None
+	while datastream is None:
+		datastream = i.read()
+	print("%s" % datastream)
+	i.write(do_SDL_FillRect)
+	datastream = None
+	while datastream is None:
+		datastream = i.read()
+	print("%s" % datastream)
+	while True:
 		print("Enter data:")
 		dataout = input()
 		s = i.write(dataout)

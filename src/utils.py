@@ -16,8 +16,15 @@ def packetUnwrap(data):
 		if len(d_body) > 1:
 			datastream = {
 				'header' : d_head,
-				'data' : d_body.replace(')', '').split(',')
 			}
+			raw_data = d_body.replace(')', '').split(',')
+			new_data = []
+			for d in raw_data:
+				if d == '':
+					print("Converting to NoneType")
+					d = None
+				new_data.append(d)
+			datastream['data'] = new_data
 		else:
 			datastream = {
 				'header' : d_head,

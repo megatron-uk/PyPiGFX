@@ -34,32 +34,76 @@ class SDLDecoder():
 			return False
 
 	def construct_call(self, sdl_func = None, datastream = None):
-		""" Constructs an SDL function call based on the received datastream """
+			""" Constructs an SDL function call based on the received datastream """
 		
-		pos = 0
-		parsed_args = []
-		for arg in datastream['data']:
-			if pos < len(sdl_func['PARAMS_LIST']):
-				arg_type = sdl_func['PARAMS_LIST'][pos]
-				
-				if arg_type in SDL_TYPES:
-					# Lookup and return actual SDL object
-					try:
-						arg_value = self.environment.objects[arg_type][str(arg)]
-					except Exception as e:
-						print("%s: Error unable to find self.environment.objects.%s.%s" % (__class__.__name__, arg_type, arg))
-						return (False, None)
+			pos = 0
+			parsed_args = []
+			print(datastream)
+		#try:
+			for arg in datastream['data']:
+				if pos < len(sdl_func['PARAMS_LIST']):
+					arg_types_ = sdl_func['PARAMS_LIST'][pos]
+					arg_types = []
+					if type(arg_types_) != type([]):
+						arg_types.append(arg_types_)
+					else:
+						arg_types = arg_types_
+					print("checking %s for match against %s" % (arg, arg_types))
+					for arg_type in arg_types:
+						if arg_type in SDL_TYPES:
+							# Lookup and return actual SDL object
+							try:
+								arg_value = self.environment.objects[arg_type][str(arg)]
+								print("adding SDL object id for %s" % arg_value)
+								parsed_args.append(arg_value)
+							except Exception as e:
+								print("%s: Warning unable to find self.environment.objects.%s.%s" % (__class__.__name__, arg_type, arg))
+								print("%s: %s" % (__class__.__name__, e))
+								#return (False, None)
+						else:
+							# Cast the argument value to the type as defined
+							try:
+								if type(arg) == type(arg_type):
+									print("adding value %s" % arg)
+									parsed_args.append(arg)
+								else:
+									print("adding cast value %s" % arg)
+									arg_value = arg_type(arg)
+									parsed_args.append(arg_value)
+							except Exception as e:
+								print("%s: Warning unable to cast argument %s to %s" % (__class__.__name__, arg, arg_type))
+								print("%s: %s" % (__class__.__name__, e))
+								#return (False, None)
+						
 				else:
-					# Cast the argument value to the type as defined
-					arg_value = arg_type(arg)
-				parsed_args.append(arg_value)
-			else:
-				print("%s: Error trying to parse argument %s, only %s arguments expected" % (__class__.__name__, pos, len(sdl_func['PARAMS_LIST'])))
-			pos += 1
-		real_func = sdl_func['SDL_CALL']
-		if len(parsed_args) == 0:
-			parsed_args = None
-		return (real_func, parsed_args)
+					print("%s: Error trying to parse argument %s, only %s arguments expected" % (__class__.__name__, pos, len(sdl_func['PARAMS_LIST'])))
+				pos += 1
+			real_func = sdl_func['SDL_CALL']
+			
+			# Anything with a trailing '_' on the function name is a wrapper
+			# and we shall always supply a copy of the SDL environment
+			# with that call as the first parameter...
+			if sdl_func['SDL_CALL'].__name__[-1] == "_":
+				parsed_args.insert(0, self.environment)
+				
+			if len(parsed_args) < len(datastream['data']):
+				print("%s: ERROR constructing SDL function call" % (__class__.__name__))
+				print("%s: ERROR not enough arguments parsed, %s instead of %s" % (__class__.__name__, len(parsed_args), len(datastream['data'])))
+				#print("%s: ERROR %s" (__class__.__name__, parsed_args))
+				print(parsed_args)
+				return (False, None)
+				
+			if len(parsed_args) == 0:
+				parsed_args = None
+				
+			print(parsed_args)
+			return (real_func, parsed_args)
+		#except Exception as e:
+			print("%s: ERROR constructing SDL function call" % (__class__.__name__))
+			print("%s: ERROR: sdl_func: %s" % (__class__.__name__, sdl_func))
+			print("%s: ERROR: %s" % (__class__.__name__, e))
+				
+			return (False, None)
 		
 	def result(self):
 		data = {
@@ -70,12 +114,12 @@ class SDLDecoder():
 		return data
 		
 	def execute_call(self, sdl_func = None, real_func = None, parsed_args = None):
-		""" Call the constructed SDL function """
+			""" Call the constructed SDL function """
 		
-		result = self.result()
+			result = self.result()
 		
-		print("%s: Calling: %s with args %s" %  (__class__.__name__, real_func.__name__, parsed_args))
-		try:
+			print("%s: Calling: %s with args %s" %  (__class__.__name__, real_func.__name__, parsed_args))
+		#try:
 			if parsed_args is not None:
 				r = real_func(*parsed_args)
 			else:
@@ -102,7 +146,7 @@ class SDLDecoder():
 				print("%s: Sending value %s" % (__class__.__name__, result['value']))
 			result['status'] = 1
 			return result
-		except Exception as e:
+		#except Exception as e:
 			print("%s: Error while executing SDL call" % (__class__.__name__))
 			print("%s: %s" % (__class__.__name__, e))
 			result['status'] = 0
@@ -156,3 +200,11 @@ class SDLEnvironment():
 		self.objects[object_type][str(self.object_id)] = sdl_object
 		
 		return self.object_id
+
+	################################
+	#
+	# Any needed wrappers around original libSDL 
+	# functions....
+	#
+	################################
+	
