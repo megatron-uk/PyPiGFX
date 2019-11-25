@@ -86,6 +86,7 @@ SDL object references are used in place of actual SDL objects in function calls.
    * Description: Initialises the SDL subsystem and libraries on the host
    * Parameters
      * flags: An OR-ed set of SDL init flags (see https://wiki.libsdl.org/SDL_Init)
+   * Returns: 0 on success
 
 Example use:
 
@@ -105,6 +106,7 @@ r = SDL_Init(flags); // Where r is a returned data structure
    * Description: Closes all open SDL resources and windows
    * Parameters
      * None
+   * Returns: void/null
 
 Example use:
 
@@ -127,6 +129,7 @@ r = SDL_Quit(); // where r is a returned data structure
      * w: Width of the new window, in pixels
      * h: Height of the new window, in pixels
      * flags: An OR-ed set of SDL_WindowFlags (see https://wiki.libsdl.org/SDL_WindowFlags)
+   * Returns: SDL_Window object ID
 
 Example use:
 
@@ -143,10 +146,59 @@ r = SDL_CreateWindow(title, 0, 0, 320, 240, flags); // where r is a returned dat
 
 ----
 
+### SDL_CreateRenderer(window:SDL_Window, index:int, flags:int)
+   * https://wiki.libsdl.org/SDL_CreateRenderer
+   * Description: Returns an instance of a rendering context that can be used to perform drawing operations into a specific SDL_Window.
+   * Parameters
+     * window: Object ID of the SDL_Window to perform 2D drawing operations on
+     * index: See https://wiki.libsdl.org/SDL_CreateRenderer
+     * flags: An OR-ed set of SDL_RendererFlags (see https://wiki.libsdl.org/SDL_RendererFlags)
+   * Returns SDL_Renderer object ID
+
+Example use:
+
+```
+int renderer;
+int window;
+window = SDL_CreateWindow(title, 0, 0, 320, 240, flags);
+renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+```
+
+   * If the call was not run, returns `<status:0,type:,value:>`
+   * On SDL success, returns `<status:1,type:SDL_Renderer,value:0ABC>` - where 0ABC is an SDL object ID reference that can be used in any subsequent calls requiring this SDL_Renderer object.
+   * On SDL error, returns `<status:1,type:void,value:null>`
+
+----
+
+### SDL_MapRGB(surface:SDL_Surface, r:int, g:int, b:int)
+   * https://wiki.libsdl.org/SDL_MapRGB
+   * Description: Returns a colour value appropriate to the format of a given pixel format associated with a surface (i.e. matches the closest available colour for a given rgb value).
+   * Parameters
+     * surface: Object ID of the SDL_Surface to retrieve the SDL_PixelFormat structure from.
+     * r: Integer value of the red channel (8 bits precision)
+     * g: Integer value of the green channel (8 bits precision)
+     * b: Integer value of the blue channel (8 bits precision)
+   * Returns: Integer representing the closest available RGB colour
+
+Example use:
+
+```
+int my_colour;
+int my_surface;
+my_surface = SDL_CreateRGBSurface(0, 320, 240, 24, 0, 0, 0, 255);
+my_colour = SDL_MapRGB(my_surface, 255, 0, 0);
+```
+
+   * If call was not run, returns `<status:0,type:,value:>`
+   * On SDL success, returns `<status:1,type:int,value:FF0000>` - where FF0000 is the RGB colour value of the closet matching available colour, solid red in this case.
+   * On SDL error, returns `<status:1,type:void,value:null>`
+   * NOTE: There is a change compared to the libSDL documentation linked above - the original call includes an explicit reference to a SDL_PixelFormat structure, with this implementation the SDL_PixelFormat is derived from the SDL_Surface referred to in the call.
+
+----
+
 ## List of planned functions
 
   * SDL_BlitSurface
-  * SDL_CreateRenderer
   * SDL_CreateRGBSurface
   * SDL_DestroyTexture
   * SDL_Drivertype

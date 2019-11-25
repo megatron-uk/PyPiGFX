@@ -4,6 +4,7 @@ from pydoc import locate
 import sdl2
 from sdl2 import *
 
+from utils import classToString, flattenString
 from sdldefs import SDL_TYPES, SDL_FUNCTIONS
 
 class SDLDecoder():
@@ -44,9 +45,9 @@ class SDLDecoder():
 				if arg_type in SDL_TYPES:
 					# Lookup and return actual SDL object
 					try:
-						arg_value = self.environment.objects[arg_type][arg]['object']
+						arg_value = self.environment.objects[arg_type][str(arg)]
 					except Exception as e:
-						print("%s: Error unable to find self.environment.objects.%s.%s" % (arg_type, arg))
+						print("%s: Error unable to find self.environment.objects.%s.%s" % (__class__.__name__, arg_type, arg))
 						return (False, None)
 				else:
 					# Cast the argument value to the type as defined
@@ -64,7 +65,7 @@ class SDLDecoder():
 		data = {
 			'status' : 0,
 			'type'	: 'void',
-			'value'	: 'null'
+			'value'	: ''
 		}
 		return data
 		
@@ -84,9 +85,21 @@ class SDLDecoder():
 			# If the return type was an SDL object, we have to store it in the environment
 			if sdl_func['RETURN_PARAM'] in SDL_TYPES:
 				object_id = self.environment.store_object(sdl_func['RETURN_PARAM'], r)
+				print("%s: Sending SDL object id %s" % (__class__.__name__, object_id))
+				result['type'] = sdl_func['RETURN_PARAM']
 				result['value'] = object_id
 			else:
-				result['value'] = r
+				result['type'] = classToString(sdl_func['RETURN_PARAM'])
+				if sdl_func['RETURN_PARAM'] is not None:
+					cast_func = sdl_func['RETURN_PARAM']
+					print("%s: Casting to %s" % (__class__.__name__, sdl_func['RETURN_PARAM']))
+					print("%s: Sending type %s" % (__class__.__name__, result['type']))
+					print(r)
+					r = cast_func(r)
+					result['value'] = r
+					print(result['value'])
+				
+				print("%s: Sending value %s" % (__class__.__name__, result['value']))
 			result['status'] = 1
 			return result
 		except Exception as e:
@@ -102,9 +115,7 @@ class SDLDecoder():
 			datastream = "<status:0,type:,value:>"			
 		else:
 			if sdl_func['RETURN_PARAM'] in SDL_TYPES:
-				sdl_object_id = "1234"
-				
-				datastream = "<status:%s,type:%s,value:%s>" % (result['status'], sdl_func['RETURN_PARAM'], sdl_object_id)
+				datastream = "<status:%s,type:%s,value:%s>" % (result['status'], sdl_func['RETURN_PARAM'], result['value'])
 			else:
 				datastream = "<status:%s,type:%s,value:%s>" % (result['status'], result['type'], result['value'])
 
@@ -140,8 +151,8 @@ class SDLEnvironment():
 
 	def store_object(self, object_type, sdl_object):
 		""" Store a new SDL object """
+	
+		self.object_id += 1	
+		self.objects[object_type][str(self.object_id)] = sdl_object
 		
-		self.objects[object_type][self.object_id] = sdl_object
-		self.object_id += 1
-		
-		return (self.object_id - 1)
+		return self.object_id

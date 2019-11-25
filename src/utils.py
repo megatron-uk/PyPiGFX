@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+
 def packetValid(data):
 	if data[0] == '<' and data[-1] == '>':
 		return True
@@ -27,3 +28,26 @@ def packetUnwrap(data):
 		print("%s: %s" % (__name__, e))
 		datastream = False
 	return datastream
+
+def classToString(classType = None):
+
+	if classType is None:
+		return "void"
+
+	if classType is str:
+		return "str"
+
+	if classType is int:
+		return "int"
+
+	if classType is flattenString:
+		return "str"
+
+	print("%s: Error no class mapping for %s" % (__name__, classType))
+	return classType
+
+def flattenString(result = None):
+
+	encoding = 'ascii'
+	result = str(result.decode(encoding))
+	return result

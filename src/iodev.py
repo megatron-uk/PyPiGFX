@@ -134,7 +134,9 @@ class IoSpi(Io):
 		""" Close an SPI connection """
 		pass
 
-def fifoclient():
+def fifoclient(instructions = []):
+	""" A basic client to send datastreams to a listening master process """
+
 	print("%s: Starting FIFO client..." % (__name__))
 	i = IoFifo()
 	if (i.open(read_fifo = settings.FIFO_CLIENT_NAME, write_fifo = settings.FIFO_MASTER_NAME)):
@@ -142,8 +144,26 @@ def fifoclient():
 	else:
 		print("%s: Unable to open FIFO" % (__name__))
 		sys.exit(1)
+
+	for ci in range(0,100):
+		i.read()
+
 	while True:
+		
+		do_SDL_Init = "<0001(32)>"
+		do_SDL_CreateWindow = "<0003(Test,0,0,640,480,0)>"
+		do_SDL_CreateRenderer = "<0004(1,0,0,0)>"
+	
+		i.write(do_SDL_Init)
+		i.write(do_SDL_CreateWindow)
+		i.write(do_SDL_CreateRenderer)
+	
 		print("Enter data:")
-		d = input()
-		r = i.write(d)
-		print(r)
+		dataout = input()
+		s = i.write(dataout)
+		print("Checking for response...")
+		datastream = None
+		while datastream is None:
+			datastream = i.read()
+		print("%s" % datastream)
+		

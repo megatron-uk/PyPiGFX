@@ -39,10 +39,12 @@ while exit != True:
 		# Unpack message	
 		if packetValid(data):
 			datastream = packetUnwrap(data)
-			if datastream:
 				
-				result = sdldecode.result()
-				
+			# Set default return objects
+			result = sdldecode.result()
+			new_datastream = sdldecode.encode_result(None, result)
+
+			if datastream:				
 				# Map to SDL function call
 				sdl_func = sdldecode.id_to_funcname(datastream)
 				if sdl_func:
@@ -56,7 +58,11 @@ while exit != True:
 					# Encode result ready for transmission back to client
 					new_datastream = sdldecode.encode_result(sdl_func, result)
 					
-				else:
-					new_datastream = sdldecode.encode_result(None, result)
+			else:
+				new_datastream = sdldecode.encode_result(None, result)
+	
+			# Send return datastream with result	
+			i.write(new_datastream)
+			
 		else:
 			print("%s: Error - invalid data: %s" % (__name__, data))
