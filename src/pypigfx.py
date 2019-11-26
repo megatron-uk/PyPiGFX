@@ -2,12 +2,13 @@
 
 import time
 import sys
-
+from newlog import newlog
 import settings
 from utils import packetValid, packetUnwrap
 from iodev import IoFifo, IoUsb, IoI2c, IoSpi
 from sdlhelper import SDLDecoder, SDLEnvironment
 
+logger = newlog(__name__)
 exit = False
 
 sdlenv = SDLEnvironment()
@@ -25,19 +26,19 @@ if settings.IO_MODE == "spi":
 	i = IoSpi()
 
 if (i.open()):
-	print("%s: Info - Device opened" % (__name__))
+	logger.info("Device opened")
 else:
-	print("%s: Error - Unable to open device" % (__name__))
+	logger.fatal("Error - Unable to open device")
 	sys.exit(1)
 
-print("%s: Starting listener loop" % (__name__))
+logger.info("Starting listener loop")
 while exit != True:
 	# listen for incoming datastream
 	data = i.read()
 	if data is not None:
 	
 		data_list = data.split('>')
-		print("DATALIST: %s" % data_list)
+		#logger.debug("DATALIST: %s" % data_list)
 		for d in data_list[0:-1]:
 			if d != '':
 				d += '>'
@@ -48,7 +49,7 @@ while exit != True:
 	
 			# Unpack message	
 			if packetValid(d):
-				print("DATA: %s" % d)
+				logger.debug("DATA: %s" % d)
 				datastream = packetUnwrap(d)
 				
 				if datastream:				
@@ -66,11 +67,12 @@ while exit != True:
 						new_datastream = sdldecode.encode_result(sdl_func, result)
 						
 			else:
-				print("%s: Error - invalid data: %s" % (__name__, d))
+				logger.warn("Error - invalid data: %s" % (d))
 				new_datastream = sdldecode.encode_result(None, result)
 		
 			# Send return datastream with result	
 			i.write(new_datastream)
 			
 		else:
-			print("%s: Error - no data left" % (__name__))
+			pass
+			#logger.debug("Warning - no data left in datastream")
