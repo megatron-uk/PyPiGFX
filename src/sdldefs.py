@@ -39,7 +39,7 @@ SDL_FUNCTIONS = {
         	"SDL_NAME" : "SDL_CreateRenderer",
         	"SDL_CALL" : SDL_CreateRenderer,
 		"PARAMS_NAMES" : ["window", "index", "flags"],
-        	"PARAMS_LIST" : ["SDL_Window", int, int, int],
+        	"PARAMS_LIST" : ["SDL_Window", int, int],
         	"RETURN_PARAM" : "SDL_Renderer"
         },
 	"05" : {

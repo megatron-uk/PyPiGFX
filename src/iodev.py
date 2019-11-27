@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+
 
 import time
 import sys
@@ -30,14 +30,16 @@ class Io():
 					reread = False
 			if datastream == '':
 				return None
+			logger.debug(datastream)
 			return datastream
 		except Exception as e:
-			#logger.warn("Warning whilst reading from device")
-			#logger.warn("Warning was: %s" % e)
+			logger.warn("Warning whilst reading from device")
+			logger.warn("Warning was: %s" % e)
 			return None
 
 	def write(self, data):
 		try:
+			logger.debug(data)
 			returncode = self.device['out'].write(data)
 			self.device['out'].flush()
 			logger.debug("Wrote %s bytes to %s" % (returncode, self.device['out']))
@@ -105,6 +107,71 @@ class IoFifo(Io):
 			logger.error("Error while closing FIFO")
 			logger.error("Error was: %s" % (e))
 			return False
+
+class IoSerial(Io):
+	def __init__(self):
+		super().__init__()
+
+	def open(self, device = "/dev/pts/4"):
+		logger.debug("Using %s" % device)
+		try:
+			ser = os.open(device, os.O_RDWR)
+			self.device = {
+				'in' : ser,
+				'out' : ser,
+			}
+			logger.debug("Device: %s" % self.device)
+			return True
+		except Exception as e:
+			logger.error("Error while opening serial port")
+			logger.error("Error was: %s" % e )
+			return False
+
+	def read(self):
+#		try:
+			reread = True
+			datastream = ""
+			m = 0
+			start = time.time()
+			while reread is True:
+				m += 1
+				d = os.read(self.device['in'],1)
+				if d is not None:
+					d = str(d, 'ascii')
+					datastream += d
+					if d == '>':
+						reread = False
+				#if time.time() > start + settings.TIMEOUT:
+				#	logger.warn("Maximum timeout exceeded")
+				#	reread = False
+				if m > 128:
+					logger.warn("Max buffer size exceeded")
+					reread = False
+			if datastream == '':
+				return None
+			logger.debug(datastream)
+			return datastream
+#		except Exception as e:
+			logger.warn("Warning whilst reading from device")
+			logger.warn("Warning was: %s" % e)
+			return None
+
+	def write(self, data):
+		try:
+			logger.debug(data)
+			bytestring = bytes(data, 'ascii')
+			returncode = os.write(self.device['out'], bytestring)
+			logger.debug("Wrote %s as %s bytes to %s" % (bytestring, returncode, self.device['out']))
+			return returncode
+		except Exception as e:
+			logger.error("Error writing to device")
+			logger.error("Error was: %s" % (e))
+			self.close()
+			self.open()
+			return False
+
+	def close(self):
+		pass
 
 class IoUsb(Io):
 

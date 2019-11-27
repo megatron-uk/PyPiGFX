@@ -5,7 +5,7 @@ import sys
 from newlog import newlog
 import settings
 from utils import packetValid, packetUnwrap
-from iodev import IoFifo, IoUsb, IoI2c, IoSpi
+from iodev import IoFifo, IoUsb, IoI2c, IoSpi, IoSerial
 from sdlhelper import SDLDecoder, SDLEnvironment
 
 logger = newlog(__name__)
@@ -18,6 +18,8 @@ sdldecode = SDLDecoder(sdl_environment = sdlenv)
 # Open connection
 if settings.IO_MODE == "pipe":
 	i = IoFifo()
+if settings.IO_MODE == "serial":
+	i = IoSerial()
 if settings.IO_MODE == "usb":
 	i = IoUsb()
 if settings.IO_MODE == "i2c":
@@ -75,4 +77,4 @@ while exit != True:
 			
 		else:
 			pass
-			#logger.debug("Warning - no data left in datastream")
+			logger.debug("Warning - no data left in datastream")

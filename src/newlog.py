@@ -62,7 +62,7 @@ def newlog(name, logging_level = None):
 	# lineno = the line in the script generating the log
 	# funcname = the name of the method or class generating the log
 	# message = the output being displayed
-	format = logging.Formatter('[%(asctime)s][%(filename)12s:%(lineno)3s][%(funcName)16s][%(levelname)8s]: %(message)s')
+	format = logging.Formatter('[%(asctime)s][%(filename)12s:%(lineno)3s][%(funcName)25s][%(levelname)8s]: %(message)s')
 
 	# Enable *only* this logger to output, override any existing handler
 	basic_logger = logging.StreamHandler()

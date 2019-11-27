@@ -5,7 +5,8 @@ INFO = True
 # Enable DEBUG level log messages
 DEBUG = True
 
-IO_MODE = "pipe"
+#IO_MODE = "pipe"
+IO_MODE = "serial"
 #IO_MODE = "usb"
 #IO_MODE = "i2c"
 #IO_MODE = "spi"

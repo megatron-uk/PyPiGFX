@@ -21,6 +21,8 @@ class SDLDecoder():
 		if datastream['header'] in SDL_FUNCTIONS.keys():
 		
 			sdl_func = SDL_FUNCTIONS[datastream['header']]
+			# Record the ID of the function
+			sdl_func['ID'] = datastream['header']
 	
 			# Function ID is a genuine SDL function name
 			if len(datastream['data']) ==  len(sdl_func['PARAMS_LIST']):
@@ -156,12 +158,15 @@ class SDLDecoder():
 		""" Encode a result object into a string for sending back to the client """
 		
 		if result['status'] == 0:
-			datastream = "<status:0;type:;value:>"			
+			if sdl_func is None:
+				datastream = "<id:;status:0;type:;value:>"			
+			else:
+				datastream = "<id:%s;status:0;type:;value:>" % sdl_func['ID']
 		else:
 			if sdl_func['RETURN_PARAM'] in SDL_TYPES:
-				datastream = "<status:%s;type:%s;value:%s>" % (result['status'], sdl_func['RETURN_PARAM'], result['value'])
+				datastream = "<id:%s;status:%s;type:%s;value:%s>" % (sdl_func['ID'], result['status'], sdl_func['RETURN_PARAM'], result['value'])
 			else:
-				datastream = "<status:%s;type:%s;value:%s>" % (result['status'], result['type'], result['value'])
+				datastream = "<id:%s;status:%s;type:%s;value:%s>" % (sdl_func['ID'], result['status'], result['type'], result['value'])
 
 		logger.debug("Encoded datastream %s" % (datastream))
 		return datastream

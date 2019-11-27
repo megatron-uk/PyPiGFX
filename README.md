@@ -2,9 +2,10 @@
 
 ## Status
 
-   * The Pi / Linux / master side of the application can accept incoming datastream messages via FIFO
+   * The Pi / Linux / master side of the application can accept incoming datastream messages via unix FIFO or serial device
    * The master is able to translate a limited number of datastream messages back into libSDL calls and execute them
-   * Data is not yet being returned to the client
+   * Response codes and data is returned to the client
+   * We can dynamically generate a sdl.py wrapper library for a Python based client
    * We are not yet generating a set of .c / .h stub pages that can be used to implement a client natively on a non-Linux system
 
 ----
@@ -90,9 +91,12 @@ Note that the `<status:,type:,value:>` data structure is not passed back to your
    * SDL_CreateWindow
    * SDL_CreateRenderer
    * SDL_CreateRGBSurface
+   * SDL_CreateTextureFromSurface
    * SDL_FillRect
    * SDL_GetDriverName
    * SDL_MapRGB
+   * SDL_RenderCopy
+   * SDL_RenderPresent
 
 ### SDL_Init(flags:int)
    * https://wiki.libsdl.org/SDL_Init
@@ -182,6 +186,30 @@ surface = SDL_CreateRGBSurface(0, 640, 480, 24, 0, 0, 0, 255)
    * On SDL success, returns `<status:1,type:SDL_Surface,value:0ABC>` - where 0ABC is an SDL object ID reference that can be used in any subsequent calls requiring this SDL_Surface object.
    * On SDL error, returns `<status:1,type:void,value:null>`
 
+----
+
+### SDL_CreateTextureFromSurface(renderer:SDL_Renderer, surface:SDL_Surface)
+   * https://wiki.libsdl.org/SDL_CreateTextureFromSurface
+   * Description: Creates a texture suitable for rendering to a render context from an SDL_Surface object
+   * Parameters:
+     * renderer: An instance of an SDL_Renderer
+     * surface: An instance of an SDL_Surface
+   * Returns: An SDL_Texture object ID
+
+```
+int window;
+int renderer;
+int surface;
+int texture;
+window = SDL_CreateWindow("newwindow",0,0,640,480,0);
+renderer = SDL_CreateRenderer(window,0,0);
+surface = SDL_CreateRGBSurface(0,640,480,24,0,0,0,255);
+texture = SDL_CreateTextureFromSurface(renderer, surface);
+```
+
+   * If the call was not run, returns `<status:0,type:,value:>`
+   * On SDL success, returns `<status:1,type:SDL_Texture,value:0ABC>` - where 0ABC is an SDL object ID reference that can be used in any subsequent calls requiring this SDL_Texture object.
+   * On SDL error, returns `<status:1,type:void,value:null>`
 
 ----
 
@@ -280,6 +308,18 @@ my_colour = SDL_MapRGB(my_surface, 255, 0, 0);
    * On SDL success, returns `<status:1,type:int,value:FF0000>` - where FF0000 is the RGB colour value of the closet matching available colour, solid red in this case.
    * On SDL error, returns `<status:1,type:void,value:null>`
    * NOTE: There is a change compared to the libSDL documentation linked above - the original call includes an explicit reference to a SDL_PixelFormat structure, with this implementation the SDL_PixelFormat is derived from the SDL_Surface referred to in the call.
+
+----
+
+### SDL_RenderCopy(renderer:SDL_Renderer, texture:SDL_Texture, [SDL_Rect|None], [SDL_Rect|None])
+   * https://wiki.libsdl.org/SDL_RenderCopy
+   * Description: Copies all or a partial texture to the output rendering context
+
+----
+
+### SDL_RenderPresent(renderer:SDL_Renderer)
+   * https://wiki.libsdl.org/SDL_RenderPresent
+   * Description: Updates the output device with any changes since the last call. This updates the screen!
 
 ----
 
