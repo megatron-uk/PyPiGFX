@@ -61,9 +61,10 @@ class SDLDecoder():
 								logger.debug("Adding SDL object id for %s" % arg_value)
 								parsed_args.append(arg_value)
 							except Exception as e:
-								logger.warn("Warning unable to find self.environment.objects.%s.%s" % (arg_type, arg))
-								logger.warn("Error was %s" % (e))
+								#logger.warn("Warning unable to find self.environment.objects.%s.%s" % (arg_type, arg))
+								#logger.warn("Error was %s" % (e))
 								#return (False, None)
+								pass
 						else:
 							# Cast the argument value to the type as defined
 							try:

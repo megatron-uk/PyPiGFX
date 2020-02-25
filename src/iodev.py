@@ -112,7 +112,7 @@ class IoSerial(Io):
 	def __init__(self):
 		super().__init__()
 
-	def open(self, device = "/dev/pts/4", nonblock = False):
+	def open(self, device = settings.PTS_SERVER, nonblock = False):
 		logger.debug("Using %s" % device)
 		try:
 			if nonblock:

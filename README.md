@@ -32,6 +32,21 @@ Since most of the load will actually be on the Pi itself, the interface for tran
 
 # Implementation 
 
+Server / Display Device Requirements:
+
+   * A generic Linux device (PC, Workstation, Pi or similar) with an libSDL2 supported display (x11, opengl, rpi etc)
+   * libsdl2
+   * libsdl2-ttf
+   * socat - For loopback testing
+   * Serial UART or equivalent USB to serial adapter providing a standard RS232 serial device
+
+Client Requirements:
+
+   * Python 3.x - For generic, modern devices using the Python client implementation
+   * ????? - For legacy microcomputers using the C client implementation
+   * Serial UART as per server
+
+
 ## GPU / Pi side
 
 A stripped-down Linux kernel (with real-time patches applied) runs on the Pi, a single process (*pypigfx* itself) runs in place of init or any other user process. Pypigfx opens either the serial port, i2c or spi bus and listens for incoming commands.
@@ -64,12 +79,12 @@ There will be some function calls where literal values are passed over the link;
 
 ## Testing
 
-You can test the functionality of `PyPiGFX` by running it in loopback mode on a single Linux PC (or normal Pi). You run the PyPiGFX server and then run one of the example client implementations (either C or Python).
+You can test the functionality of `PyPiGFX` by running it in loopback mode on a single Linux PC (or normal Pi, or even Windows device using the WSL and a X11 server such as vcxsrv). You run the PyPiGFX server and then run one of the example client implementations (either C or Python).
 
 To do this you'll first have to bring up a pair of virtual serial ports that are linked together. To do this, use socat:
 
 ```
-$ socat -d -d pty,raw,echo=0,link=/tmp/ttyV0 pty,raw,echo=0,link=/tmp/ttyV1
+$ ./loopback_device.sh
 ```
 
 This should create two new virtual serial ports and link them together (RX from one connects to the TX of the other, and vice versa). The name of the two new pseudo-terminal devices (/dev/pts/X and /dev/pts/Y) will be printed to the screen. The server (`src/iodev.py`) needs to be told to use one of those devices, and the client (`src/examples/python/sdl.py`) uses the other.
@@ -77,14 +92,13 @@ This should create two new virtual serial ports and link them together (RX from 
 Now run the server:
 
 ```
-$ python3 src/pypigfx.py
+$ ./server.sh
 ```
 
 Then run the test client implementation:
 
 ```
-$ cd src/examples/python
-$ python3 test.py
+$ ./loopback_client.sh
 ```
 
 All being well you should see the client connect to the server in the output log, the server spin up a new SDL window, and various shapes and colours appear in sequence in the SDL window. As each SDL instruction is sent over the serial link, you should see the server decode and execute it.

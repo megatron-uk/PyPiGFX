@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
 # Enable INFO level log messages
-INFO = True
+INFO = False
 # Enable DEBUG level log messages
-DEBUG = True
+DEBUG = False
 
 #IO_MODE = "pipe"
 IO_MODE = "serial"
@@ -14,6 +14,9 @@ IO_MODE = "serial"
 FIFO_CLIENT_NAME = "/tmp/pypigfx_client.fifo"
 FIFO_MASTER_NAME = "/tmp/pypigfx_master.fifo"
 USB_DEVICE = "/dev/ttyUSB0"
+
+PTS_SERVER = "/dev/pts/0"
+PTS_CLIENT = "/dev/pts/1"
 
 # Where the generated libraries of functions are stored
 LIB_LOCATION_PY = "examples/python/sdl.py"

@@ -17,7 +17,7 @@ logger = newlog(__name__)
 #i = IoFifo()
 i = IoSerial()
 
-dev = "/dev/pts/6"
+dev = settings.PTS_CLIENT
 
 # Change this to your desired initialisation params
 #i.open(read_fifo = settings.FIFO_CLIENT_NAME, write_fifo = settings.FIFO_MASTER_NAME)
