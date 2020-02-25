@@ -42,12 +42,16 @@ while exit != True:
 		data_list = data.split('>')
 		#logger.debug("DATALIST: %s" % data_list)
 		for d in data_list[0:-1]:
+			
+			logger.debug("=====================")
+			
 			if d != '':
 				d += '>'
 	
 			# Set default return objects
 			result = sdldecode.result()
 			new_datastream = sdldecode.encode_result(None, result)
+			sdl_func = None
 	
 			# Unpack message	
 			if packetValid(d):

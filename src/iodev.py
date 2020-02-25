@@ -112,10 +112,13 @@ class IoSerial(Io):
 	def __init__(self):
 		super().__init__()
 
-	def open(self, device = "/dev/pts/4"):
+	def open(self, device = "/dev/pts/4", nonblock = False):
 		logger.debug("Using %s" % device)
 		try:
-			ser = os.open(device, os.O_RDWR)
+			if nonblock:
+				ser = os.open(device, os.O_RDWR | os.O_NONBLOCK)
+			else:
+				ser = os.open(device, os.O_RDWR)
 			self.device = {
 				'in' : ser,
 				'out' : ser,
@@ -128,7 +131,7 @@ class IoSerial(Io):
 			return False
 
 	def read(self):
-#		try:
+		try:
 			reread = True
 			datastream = ""
 			m = 0
@@ -151,7 +154,7 @@ class IoSerial(Io):
 				return None
 			logger.debug(datastream)
 			return datastream
-#		except Exception as e:
+		except Exception as e:
 			logger.warn("Warning whilst reading from device")
 			logger.warn("Warning was: %s" % e)
 			return None
@@ -171,6 +174,7 @@ class IoSerial(Io):
 			return False
 
 	def close(self):
+		os.close(self.device['in'])
 		pass
 
 class IoUsb(Io):

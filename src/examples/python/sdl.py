@@ -9,23 +9,25 @@ import time
 import settings
 from newlog import newlog
 from utils import packetWrap, responseUnwrap, packetToReturnCode
-from iodev import IoFifo, IoSerial, IoI2c, IoSpi, IoUsb
+from iodev import IoFifo, IoSerial, IoI2c, IoSpi
 
 logger = newlog(__name__)
 
 # New IO device instance - change to the class you want to use
+#i = IoFifo()
 i = IoSerial()
+
+dev = "/dev/pts/6"
 
 # Change this to your desired initialisation params
 #i.open(read_fifo = settings.FIFO_CLIENT_NAME, write_fifo = settings.FIFO_MASTER_NAME)
-i.open(device="/dev/pts/6")
+i.open(device = dev, nonblock=True)
 
-# Attempt to flush any buffered data in the input queue
-#logger.debug("Waiting for buffered data to clear")
-#d = "INITIAL_DATA"
-#for c in range(0,9):
-#	d = i.read()
-#logger.debug("Ready")
+logger.debug("Reading any remaining data in input buffer")
+i.read()
+i.close()
+i.open(device = dev)
+logger.debug("Ready")
 
 
 

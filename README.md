@@ -62,6 +62,33 @@ At the Pi end, it reads the first set of bytes: `0x09`, look it up, detect that 
 
 There will be some function calls where literal values are passed over the link; for example in the case of creating new SDL_bitmap or SDL_rect objects, we'll need to supply integers to specify sizes. We should be able to use a 3 byte value scheme for most cases (32768 values) to keep the datastream compact.
 
+## Testing
+
+You can test the functionality of `PyPiGFX` by running it in loopback mode on a single Linux PC (or normal Pi). You run the PyPiGFX server and then run one of the example client implementations (either C or Python).
+
+To do this you'll first have to bring up a pair of virtual serial ports that are linked together. To do this, use socat:
+
+```
+$ socat -d -d pty,raw,echo=0,link=/tmp/ttyV0 pty,raw,echo=0,link=/tmp/ttyV1
+```
+
+This should create two new virtual serial ports and link them together (RX from one connects to the TX of the other, and vice versa). The name of the two new pseudo-terminal devices (/dev/pts/X and /dev/pts/Y) will be printed to the screen. The server (`src/iodev.py`) needs to be told to use one of those devices, and the client (`src/examples/python/sdl.py`) uses the other.
+
+Now run the server:
+
+```
+$ python3 src/pypigfx.py
+```
+
+Then run the test client implementation:
+
+```
+$ cd src/examples/python
+$ python3 test.py
+```
+
+All being well you should see the client connect to the server in the output log, the server spin up a new SDL window, and various shapes and colours appear in sequence in the SDL window. As each SDL instruction is sent over the serial link, you should see the server decode and execute it.
+
 ----
 
 # API

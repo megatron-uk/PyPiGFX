@@ -48,18 +48,23 @@ print(black)
 white = SDL_MapRGB(surface,255,255,255)
 print(white)
 
-while True:
-	for col in [black, white]:
-		# Fill the surface in black
-		v = SDL_FillRect(surface,None,col)
-		print("SDL_FillRect %s" % v)
+col = black
+# Fill the surface in black
+v = SDL_FillRect(surface,None,col)
+print("SDL_FillRect %s" % v)
 
-		# Transfer surface to a texture and present to the renderer
-		texture = SDL_CreateTextureFromSurface(renderer, surface)
-		print("SDL_CreateTextureFromSurface %s" % texture)
-		v = SDL_RenderCopy(renderer,texture,None,None)	
-		print("SDL_RenderCopy %s" % v)
+# Transfer surface to a texture and present to the renderer
+texture = SDL_CreateTextureFromSurface(renderer, surface)
+print("SDL_CreateTextureFromSurface %s" % texture)
+v = SDL_RenderCopy(renderer,texture,None,None)	
+print("SDL_RenderCopy %s" % v)
 
-		# Finally, update screen
-		v = SDL_RenderPresent(renderer)
-		print("SDL_RenderPresent %s" % v)
+# Finally, update screen
+v = SDL_RenderPresent(renderer)
+print("SDL_RenderPresent %s" % v)
+
+# Create a white rectangle that moves back and forth
+#box = SDL_Rect
+#while True:
+
+

@@ -9,7 +9,7 @@ SDL_TYPES = ["SDL_Rect", "SDL_Surface", "SDL_Window", "SDL_Renderer", "SDL_Textu
 SDL_FUNCTIONS = {
         "00" : {
                 "SDL_NAME" : "SDL_Quit",
-                "SDL_CALL" : SDL_Quit,
+                "SDL_CALL" : SDL_Quit_,
 		"PARAMS_NAMES" : [],
                 "PARAMS_LIST" : [],
                 "RETURN_PARAM" : None
